@@ -3,7 +3,6 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/", "destination": "/login.html" },
-    { "source": "/login", "destination": "/api/login", "methods": ["POST"] },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/register", "destination": "/register.html" },
     { "source": "/customer/dashboard", "destination": "/customer/dashboard.html" },
