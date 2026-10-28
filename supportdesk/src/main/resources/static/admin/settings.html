@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Settings - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Administrator</div>
+                <div class="small text-info current-user-role">ORGANIZATION ADMIN</div>
+                <div class="small text-muted current-user-org">TechFlow Solutions</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/admin/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/tickets" class="nav-link"><i class="bi bi-ticket-perforated me-2"></i> All Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/users" class="nav-link"><i class="bi bi-people me-2"></i> User Directory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/teams" class="nav-link"><i class="bi bi-diagram-3 me-2"></i> Support Teams</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/categories" class="nav-link"><i class="bi bi-tags me-2"></i> Categories</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/sla" class="nav-link"><i class="bi bi-shield-check me-2"></i> SLA Policies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/rules" class="nav-link"><i class="bi bi-bezier2 me-2"></i> Routing Rules</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/reports" class="nav-link"><i class="bi bi-bar-chart-line me-2"></i> Reports & Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/settings" class="nav-link active"><i class="bi bi-gear me-2"></i> Domain Settings</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0">Domain & Operating Settings</h4>
+                    <p class="text-muted small mb-0">Manage multi-domain profiles, business operating hours, and system parameters</p>
+                </div>
+            </header>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-building text-primary me-2"></i>Organization Profile</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="settingsForm">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Organization Name</label>
+                                    <input type="text" id="orgName" class="form-control" value="TechFlow Solutions" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Primary Business Domain</label>
+                                    <select id="orgDomain" class="form-select">
+                                        <option value="IT_SOFTWARE" selected>IT & Software Services</option>
+                                        <option value="ECOMMERCE">E-Commerce & Online Retail</option>
+                                        <option value="EDUCATION">Educational Institution</option>
+                                        <option value="BANKING">Banking & Financial Services</option>
+                                        <option value="HEALTHCARE">Healthcare & Clinic Administration</option>
+                                        <option value="GENERAL">General Business Customer Support</option>
+                                    </select>
+                                    <div class="form-text">Controls default taxonomy keywords and automated routing templates.</div>
+                                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">Business Hours Start</label>
+                                        <input type="time" id="hoursStart" class="form-control" value="09:00">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">Business Hours End</label>
+                                        <input type="time" id="hoursEnd" class="form-control" value="17:00">
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                        <i class="bi bi-check2 me-1"></i> Save Configuration
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-envelope-at text-info me-2"></i>Email Integration Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="badge bg-secondary me-2">Disabled by Default</span>
+                                <span class="small text-muted">Safe Mode Active</span>
+                            </div>
+                            <p class="small text-secondary mb-3">
+                                The application runs standalone without external SMTP credentials. In production, configure environment variables:
+                            </p>
+                            <div class="bg-light p-2 rounded small text-dark font-monospace mb-2" style="font-size:0.75rem;">
+                                SPRING_MAIL_ENABLED=true<br>
+                                SPRING_MAIL_HOST=smtp.mailgun.org<br>
+                                SPRING_MAIL_PORT=587<br>
+                                SPRING_MAIL_USERNAME=user<br>
+                                SPRING_MAIL_PASSWORD=secret
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+
+            document.getElementById('settingsForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                showToast('Organization settings updated successfully', 'success');
+            });
+        });
+    </script>
+</body>
+</html>
+

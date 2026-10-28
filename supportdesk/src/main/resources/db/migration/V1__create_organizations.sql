@@ -1,0 +1,12 @@
+CREATE TABLE organizations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    domain VARCHAR(50) NOT NULL,
+    description TEXT,
+    business_hours_start TIME DEFAULT '09:00:00',
+    business_hours_end TIME DEFAULT '17:00:00',
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

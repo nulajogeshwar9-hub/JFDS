@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Administrator</div>
+                <div class="small text-info current-user-role">ORGANIZATION ADMIN</div>
+                <div class="small text-muted current-user-org">TechFlow Solutions</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/admin/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/tickets" class="nav-link"><i class="bi bi-ticket-perforated me-2"></i> All Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/users" class="nav-link"><i class="bi bi-people me-2"></i> User Directory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/teams" class="nav-link"><i class="bi bi-diagram-3 me-2"></i> Support Teams</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/categories" class="nav-link active"><i class="bi bi-tags me-2"></i> Categories</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/sla" class="nav-link"><i class="bi bi-shield-check me-2"></i> SLA Policies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/rules" class="nav-link"><i class="bi bi-bezier2 me-2"></i> Routing Rules</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/reports" class="nav-link"><i class="bi bi-bar-chart-line me-2"></i> Reports & Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/settings" class="nav-link"><i class="bi bi-gear me-2"></i> Domain Settings</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0">Ticket Categories</h4>
+                    <p class="text-muted small mb-0">Manage taxonomy and issue classifications</p>
+                </div>
+                <button class="btn btn-primary" id="btnCreateCat">
+                    <i class="bi bi-plus-lg me-1"></i> Add Category
+                </button>
+            </header>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Category Name</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody">
+                                <tr><td colspan="3" class="text-center py-4 text-muted">Loading categories...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Category Modal -->
+    <div class="modal fade" id="catModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="catForm">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Category Name *</label>
+                            <input type="text" id="catName" class="form-control" required placeholder="e.g. Database Connectivity">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Description</label>
+                            <textarea id="catDescription" class="form-control" rows="3" placeholder="Category definition..."></textarea>
+                        </div>
+                        <div class="modal-footer px-0 pb-0">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Category</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        let catModalInstance;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            catModalInstance = new bootstrap.Modal(document.getElementById('catModal'));
+            loadCategories();
+
+            document.getElementById('btnCreateCat').addEventListener('click', () => catModalInstance.show());
+            document.getElementById('catForm').addEventListener('submit', createCat);
+        });
+
+        async function loadCategories() {
+            try {
+                const list = await API.get('/api/admin/categories');
+                const tbody = document.getElementById('categoriesTableBody');
+
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">No categories configured yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(c => `
+                    <tr>
+                        <td class="fw-bold"><i class="bi bi-tag-fill text-primary me-2"></i>${escapeHtml(c.name)}</td>
+                        <td class="text-muted small">${escapeHtml(c.description || '—')}</td>
+                        <td><span class="badge ${c.active ? 'bg-success' : 'bg-secondary'}">${c.active ? 'Active' : 'Inactive'}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function createCat(e) {
+            e.preventDefault();
+            const name = document.getElementById('catName').value.trim();
+            const description = document.getElementById('catDescription').value.trim();
+
+            try {
+                await API.post('/api/admin/categories', { name, description, active: true });
+                showToast('Category created', 'success');
+                catModalInstance.hide();
+                document.getElementById('catForm').reset();
+                loadCategories();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
+

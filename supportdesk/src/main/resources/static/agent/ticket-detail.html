@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Ticket Workspace - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .chat-bubble {
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .chat-public {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+        .chat-internal {
+            background-color: #fefce8;
+            border: 1px solid #fef08a;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Agent</div>
+                <div class="small text-warning current-user-role">SUPPORT AGENT</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/agent/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Agent Workspace</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/agent/tickets" class="nav-link active"><i class="bi bi-inbox me-2"></i> Assigned Tickets</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <a href="/agent/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+                        <h4 class="fw-bold mb-0" id="ticketNumberHeader">Loading...</h4>
+                        <span id="ticketStatusBadge"></span>
+                        <span id="ticketPriorityBadge"></span>
+                    </div>
+                    <p class="text-muted small mb-0" id="ticketSubjectHeader"></p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <select id="statusSelect" class="form-select form-select-sm" style="width: auto;">
+                        <option value="OPEN">Set: OPEN</option>
+                        <option value="IN_PROGRESS">Set: IN PROGRESS</option>
+                        <option value="WAITING_FOR_CUSTOMER">Set: WAITING FOR CUSTOMER</option>
+                        <option value="RESOLVED">Set: RESOLVED</option>
+                        <option value="CLOSED">Set: CLOSED</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" id="btnUpdateStatus">Update Status</button>
+                </div>
+            </header>
+
+            <div class="row g-4">
+                <!-- Left: Conversation & Replies -->
+                <div class="col-lg-8">
+                    <!-- Rule-Based AI Classifier Suggestion Card -->
+                    <div class="card border-0 shadow-sm mb-4 border-start border-4 border-primary" id="classifierCard">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold text-primary small">
+                                    <i class="bi bi-robot me-1"></i> Rule-Based Classification Recommendation
+                                </span>
+                                <span class="badge bg-light text-primary border" id="classifierScore">Verified Rule</span>
+                            </div>
+                            <div class="row g-2 small text-secondary">
+                                <div class="col-md-4">Category: <strong id="sugCategory" class="text-dark">—</strong></div>
+                                <div class="col-md-4">Priority: <strong id="sugPriority" class="text-dark">—</strong></div>
+                                <div class="col-md-4">Target Team: <strong id="sugTeam" class="text-dark">—</strong></div>
+                            </div>
+                            <div class="small text-muted mt-2 pt-2 border-top" id="sugReasoning"></div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Description -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small" id="customerName">Customer</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;" id="ticketCreatedDate">Submitted: —</div>
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-dark border">Customer Inquiry</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 text-secondary" id="ticketDescription" style="white-space: pre-wrap;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Conversation Thread (Public replies and Private Internal Notes) -->
+                    <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-chat-dots me-2"></i>Activity & Communications</h6>
+                    <div id="conversationThread" class="mb-4">
+                        <div class="text-center py-3 text-muted small">Loading activity...</div>
+                    </div>
+
+                    <!-- Agent Reply & Internal Note Box -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-2 border-bottom d-flex justify-content-between align-items-center">
+                            <ul class="nav nav-pills card-header-pills" id="replyTabs" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active py-1 px-3 small fw-semibold" id="tab-public" data-bs-toggle="pill" data-bs-target="#panel-public" type="button">
+                                        <i class="bi bi-chat-right-text me-1"></i> Public Customer Reply
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link py-1 px-3 small fw-semibold text-warning" id="tab-internal" data-bs-toggle="pill" data-bs-target="#panel-internal" type="button">
+                                        <i class="bi bi-lock me-1"></i> Internal Staff Note
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <form id="replyForm">
+                                <div class="mb-3">
+                                    <textarea id="replyMessage" class="form-control" rows="4" required
+                                              placeholder="Type message to customer or private team note..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted" id="notePrivacyIndicator">
+                                        <i class="bi bi-globe me-1"></i> Customer will be notified via email
+                                    </span>
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btnSubmitReply">
+                                        <i class="bi bi-send me-1"></i> Post Update
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Metadata & SLA Watcher -->
+                <div class="col-lg-4">
+                    <!-- SLA Monitoring Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-alarm text-danger me-2"></i>SLA Compliance Watch</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Remaining Time:</span>
+                                    <span id="slaRemaining">Checking...</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">First Response SLA:</span>
+                                    <span class="small" id="firstResponseSla">Not Recorded</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Resolution Deadline:</span>
+                                    <span class="small text-muted" id="resolutionDeadline">—</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Details Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-sliders text-primary me-2"></i>Ticket Metadata</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Domain:</span>
+                                    <span class="badge bg-light text-dark border" id="ticketDomain">—</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Category:</span>
+                                    <span class="fw-semibold small" id="ticketCategory">—</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Support Team:</span>
+                                    <span class="small fw-semibold" id="ticketTeam">—</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Customer Email:</span>
+                                    <span class="small text-muted" id="customerEmail">—</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Audit Trail / Ticket History -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-clock-history text-secondary me-2"></i>Audit History</h6>
+                        </div>
+                        <div class="card-body p-3" style="max-height: 300px; overflow-y: auto;" id="historyTrail">
+                            <div class="text-center py-3 text-muted small">Loading history...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        const ticketId = window.location.pathname.split('/').pop();
+        let isInternalNote = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            loadTicketDetail();
+
+            document.getElementById('tab-public').addEventListener('click', () => {
+                isInternalNote = false;
+                document.getElementById('notePrivacyIndicator').innerHTML = '<i class="bi bi-globe me-1"></i> Customer will be notified via email';
+                document.getElementById('btnSubmitReply').className = 'btn btn-primary px-4 fw-semibold';
+            });
+
+            document.getElementById('tab-internal').addEventListener('click', () => {
+                isInternalNote = true;
+                document.getElementById('notePrivacyIndicator').innerHTML = '<i class="bi bi-lock-fill text-warning me-1"></i> Visible only to internal support staff and admins';
+                document.getElementById('btnSubmitReply').className = 'btn btn-warning text-dark px-4 fw-semibold';
+            });
+
+            document.getElementById('replyForm').addEventListener('submit', postReply);
+            document.getElementById('btnUpdateStatus').addEventListener('click', updateStatus);
+        });
+
+        async function loadTicketDetail() {
+            try {
+                const ticket = await API.get(`/api/tickets/${ticketId}`);
+                if (!ticket) return;
+
+                document.getElementById('ticketNumberHeader').textContent = ticket.ticketNumber;
+                document.getElementById('ticketSubjectHeader').textContent = ticket.subject;
+                document.getElementById('ticketStatusBadge').innerHTML = getStatusBadge(ticket.status);
+                document.getElementById('ticketPriorityBadge').innerHTML = getPriorityBadge(ticket.priority);
+
+                document.getElementById('customerName').textContent = ticket.customerName || 'Customer';
+                document.getElementById('customerEmail').textContent = ticket.customerEmail || '—';
+                document.getElementById('ticketCreatedDate').textContent = 'Submitted: ' + formatDate(ticket.createdAt);
+                document.getElementById('ticketDescription').textContent = ticket.description;
+
+                document.getElementById('ticketDomain').textContent = ticket.domain || 'Standard';
+                document.getElementById('ticketCategory').textContent = ticket.categoryName || 'General';
+                document.getElementById('ticketTeam').textContent = ticket.assignedTeamName || 'Unassigned';
+
+                document.getElementById('statusSelect').value = ticket.status;
+
+                // SLA monitoring
+                const breached = ticket.slaResolutionBreached || ticket.slaFirstResponseBreached;
+                document.getElementById('slaRemaining').innerHTML = formatSlaRemaining(ticket.slaRemainingMinutes, breached);
+                document.getElementById('resolutionDeadline').textContent = formatDate(ticket.resolutionDeadline);
+                document.getElementById('firstResponseSla').textContent = ticket.firstResponseAt ? formatDate(ticket.firstResponseAt) : 'Pending First Reply';
+
+                // Classifier
+                if (ticket.classificationSuggestion) {
+                    const sug = ticket.classificationSuggestion;
+                    document.getElementById('sugCategory').textContent = sug.suggestedCategoryName || '—';
+                    document.getElementById('sugPriority').textContent = sug.suggestedPriority || '—';
+                    document.getElementById('sugTeam').textContent = sug.suggestedTeamName || '—';
+                    document.getElementById('sugReasoning').textContent = sug.reasoning || '';
+                }
+
+                // Render replies
+                renderReplies(ticket.replies || []);
+
+                // Render history
+                renderHistory(ticket.history || []);
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderReplies(replies) {
+            const container = document.getElementById('conversationThread');
+            if (replies.length === 0) {
+                container.innerHTML = `<div class="card border-0 shadow-sm p-4 text-center text-muted">No communication yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = replies.map(r => {
+                const isInternal = Boolean(r.internalNote);
+                return `
+                    <div class="chat-bubble ${isInternal ? 'chat-internal' : 'chat-public'} shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small ${isInternal ? 'text-warning-emphasis' : 'text-primary'}">
+                                <i class="bi ${isInternal ? 'bi-lock-fill text-warning' : 'bi-person-circle'} me-1"></i>
+                                ${escapeHtml(r.userName)}
+                                <span class="badge ${isInternal ? 'bg-warning text-dark' : 'bg-primary'} ms-1" style="font-size:0.65rem;">
+                                    ${isInternal ? 'INTERNAL NOTE' : r.userRole}
+                                </span>
+                            </span>
+                            <span class="text-muted" style="font-size: 0.75rem;">${formatDate(r.createdAt)}</span>
+                        </div>
+                        <div class="text-secondary small" style="white-space: pre-wrap;">${escapeHtml(r.message)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistory(history) {
+            const container = document.getElementById('historyTrail');
+            if (history.length === 0) {
+                container.innerHTML = `<div class="text-muted small">No audit records yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = history.map(h => `
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold small">${escapeHtml(h.fieldChanged)}</span>
+                        <span class="text-muted" style="font-size:0.7rem;">${timeAgo(h.createdAt)}</span>
+                    </div>
+                    <div class="small text-secondary">
+                        ${h.oldValue ? `<span class="text-danger">${escapeHtml(h.oldValue)}</span> &rarr; ` : ''}
+                        <span class="text-success fw-semibold">${escapeHtml(h.newValue || '')}</span>
+                    </div>
+                    ${h.comment ? `<div class="text-muted" style="font-size:0.75rem;">${escapeHtml(h.comment)}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function postReply(e) {
+            e.preventDefault();
+            const message = document.getElementById('replyMessage').value.trim();
+            if (!message) return;
+
+            const btn = document.getElementById('btnSubmitReply');
+            btn.disabled = true;
+
+            try {
+                await API.post(`/api/tickets/${ticketId}/replies`, { message, internalNote: isInternalNote });
+                document.getElementById('replyMessage').value = '';
+                showToast(isInternalNote ? 'Internal note added' : 'Public reply posted', 'success');
+                loadTicketDetail();
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function updateStatus() {
+            const status = document.getElementById('statusSelect').value;
+            try {
+                await API.put(`/api/tickets/${ticketId}/status`, { status, comment: 'Status modified by agent' });
+                showToast(`Status updated to ${status}`, 'success');
+                loadTicketDetail();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
+

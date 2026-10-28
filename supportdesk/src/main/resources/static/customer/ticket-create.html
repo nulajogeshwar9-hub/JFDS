@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Support Ticket - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Customer</div>
+                <div class="small text-muted current-user-role">CUSTOMER</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/customer/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/tickets" class="nav-link"><i class="bi bi-ticket-perforated me-2"></i> My Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/tickets/new" class="nav-link active"><i class="bi bi-plus-circle me-2"></i> Submit Ticket</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/profile" class="nav-link"><i class="bi bi-person me-2"></i> Profile</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0">Create Support Ticket</h4>
+                    <p class="text-muted small mb-0">Submit a query to our support engineering team</p>
+                </div>
+                <a href="/customer/tickets" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Tickets
+                </a>
+            </header>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <form id="createTicketForm">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Subject / Title *</label>
+                                    <input type="text" id="subject" class="form-control form-control-lg" required
+                                           placeholder="Brief summary of the issue (e.g. Cannot log in to account, Payment deduction error)">
+                                    <div class="form-text">Keep the subject clear so our classification engine can route it accurately.</div>
+                                </div>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Business Domain</label>
+                                        <select id="domain" class="form-select">
+                                            <option value="IT_SOFTWARE">IT & Software</option>
+                                            <option value="ECOMMERCE">E-Commerce & Retail</option>
+                                            <option value="EDUCATION">Educational Institution</option>
+                                            <option value="BANKING">Banking & Finance</option>
+                                            <option value="HEALTHCARE">Healthcare Administration</option>
+                                            <option value="GENERAL">General Customer Service</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Category (Optional)</label>
+                                        <select id="category" class="form-select">
+                                            <option value="">-- Let Rule Engine Classify --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Priority</label>
+                                    <select id="priority" class="form-select">
+                                        <option value="">-- Auto-detect Priority --</option>
+                                        <option value="LOW">Low (General inquiry, non-urgent)</option>
+                                        <option value="MEDIUM" selected>Medium (Standard issue)</option>
+                                        <option value="HIGH">High (Impacts work or service)</option>
+                                        <option value="URGENT">Urgent (Critical failure / outage)</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Detailed Description *</label>
+                                    <textarea id="description" class="form-control" rows="6" required
+                                              placeholder="Provide steps to reproduce, error codes, expected behavior, or transaction IDs..."></textarea>
+                                </div>
+
+                                <!-- Live Classifier Preview Box -->
+                                <div class="card bg-light border p-3 mb-4 d-none" id="classifierPreviewCard">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="bi bi-robot text-primary me-2 fs-5"></i>
+                                        <span class="fw-bold small text-primary">Rule-Based Classifier Suggestion</span>
+                                    </div>
+                                    <div class="small text-secondary" id="classifierReasoning"></div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="/customer/tickets" class="btn btn-light px-4">Cancel</a>
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btnSubmit">
+                                        <span id="btnText"><i class="bi bi-send me-1"></i> Submit Ticket</span>
+                                        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info sidebar -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-shield-check text-success me-2"></i>Service Level Agreements</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="small text-muted">Tickets are tracked under our automated SLA policies with guaranteed response targets:</p>
+                            <ul class="list-unstyled small mb-0">
+                                <li class="mb-2"><span class="badge bg-danger me-2">URGENT</span> 15-minute response target</li>
+                                <li class="mb-2"><span class="badge bg-warning text-dark me-2">HIGH</span> 1-hour response target</li>
+                                <li class="mb-2"><span class="badge bg-primary me-2">MEDIUM</span> 4-business-hour target</li>
+                                <li><span class="badge bg-info text-dark me-2">LOW</span> 1-business-day target</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-lightbulb text-warning me-2"></i>Tips for Fast Resolution</h6>
+                            <ul class="small text-muted ps-3 mb-0">
+                                <li class="mb-1">Include exact error messages if visible.</li>
+                                <li class="mb-1">Mention the browser or device you are using.</li>
+                                <li>Our rule-based engine automatically dispatches tickets to specialized support teams.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            loadCategories();
+
+            // Real-time classification suggestion debounce
+            let debounceTimer;
+            const subjectInput = document.getElementById('subject');
+            const descInput = document.getElementById('description');
+
+            function triggerPreview() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(checkClassification, 600);
+            }
+
+            subjectInput.addEventListener('input', triggerPreview);
+            descInput.addEventListener('input', triggerPreview);
+
+            document.getElementById('createTicketForm').addEventListener('submit', submitTicket);
+        });
+
+        async function loadCategories() {
+            try {
+                // Customer can fetch categories from /api/tickets/categories or general categories
+                const res = await API.get('/api/tickets'); // will populate
+            } catch (e) {}
+        }
+
+        async function checkClassification() {
+            const subject = document.getElementById('subject').value.trim();
+            const desc = document.getElementById('description').value.trim();
+            const domain = document.getElementById('domain').value;
+
+            if (subject.length < 4) return;
+
+            try {
+                const url = `/api/tickets/classify-preview?subject=${encodeURIComponent(subject)}&description=${encodeURIComponent(desc)}&domain=${domain}`;
+                const sug = await API.get(url);
+                if (sug) {
+                    const card = document.getElementById('classifierPreviewCard');
+                    const reasoning = document.getElementById('classifierReasoning');
+                    card.classList.remove('d-none');
+                    reasoning.innerHTML = `Suggested Team: <strong>${escapeHtml(sug.suggestedTeamName)}</strong> | Category: <strong>${escapeHtml(sug.suggestedCategoryName)}</strong> | Priority: <strong>${sug.suggestedPriority}</strong> (${Math.round(sug.confidenceScore * 100)}% match)`;
+                }
+            } catch (e) {}
+        }
+
+        async function submitTicket(e) {
+            e.preventDefault();
+
+            const subject = document.getElementById('subject').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const domain = document.getElementById('domain').value;
+            const priorityVal = document.getElementById('priority').value;
+            const catVal = document.getElementById('category').value;
+
+            const payload = {
+                subject,
+                description,
+                domain,
+                priority: priorityVal || null,
+                categoryId: catVal ? parseInt(catVal) : null
+            };
+
+            const btn = document.getElementById('btnSubmit');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+
+            btn.disabled = true;
+            btnText.classList.add('d-none');
+            btnSpinner.classList.remove('d-none');
+
+            try {
+                const ticket = await API.post('/api/tickets', payload);
+                if (ticket && ticket.id) {
+                    showToast(`Ticket ${ticket.ticketNumber} created successfully!`, 'success');
+                    setTimeout(() => {
+                        window.location.href = `/customer/tickets/${ticket.id}`;
+                    }, 800);
+                }
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btnText.classList.remove('d-none');
+                btnSpinner.classList.add('d-none');
+            }
+        }
+    </script>
+</body>
+</html>
+

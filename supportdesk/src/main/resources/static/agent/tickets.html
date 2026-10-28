@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assigned Tickets - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Agent</div>
+                <div class="small text-warning current-user-role">SUPPORT AGENT</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/agent/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Agent Workspace</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/agent/tickets" class="nav-link active"><i class="bi bi-inbox me-2"></i> Assigned Tickets</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0">Assigned Tickets</h4>
+                    <p class="text-muted small mb-0">Search, triage, and investigate customer cases</p>
+                </div>
+            </header>
+
+            <!-- Filters -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form id="filterForm" class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                <input type="text" id="query" class="form-control" placeholder="Search ticket #, subject, customer...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="OPEN">Open</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="WAITING_FOR_CUSTOMER">Waiting For Customer</option>
+                                <option value="RESOLVED">Resolved</option>
+                                <option value="CLOSED">Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="priority" class="form-select">
+                                <option value="">All Priorities</option>
+                                <option value="URGENT">Urgent</option>
+                                <option value="HIGH">High</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="LOW">Low</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+                            <button type="button" class="btn btn-outline-secondary" id="resetBtn"><i class="bi bi-arrow-clockwise"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ticket #</th>
+                                    <th>Customer</th>
+                                    <th>Subject</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>First Response</th>
+                                    <th>SLA Deadline</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agentTicketsTable">
+                                <tr><td colspan="8" class="text-center py-4 text-muted">Loading assigned tickets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3 border-top d-flex justify-content-between align-items-center" id="paginationContainer"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        let currentPage = 0;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            loadTickets();
+
+            document.getElementById('filterForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                currentPage = 0;
+                loadTickets();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('query').value = '';
+                document.getElementById('status').value = '';
+                document.getElementById('priority').value = '';
+                currentPage = 0;
+                loadTickets();
+            });
+        });
+
+        async function loadTickets(page = currentPage) {
+            currentPage = page;
+            const q = document.getElementById('query').value.trim();
+            const status = document.getElementById('status').value;
+            const priority = document.getElementById('priority').value;
+
+            let url = `/api/agent/tickets?page=${page}&size=10&sortDirection=DESC`;
+            if (q) url += `&query=${encodeURIComponent(q)}`;
+            if (status) url += `&status=${status}`;
+            if (priority) url += `&priority=${priority}`;
+
+            try {
+                const res = await API.get(url);
+                const tbody = document.getElementById('agentTicketsTable');
+                const tickets = res ? res.content : [];
+
+                if (!tickets || tickets.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">No tickets match your filter criteria.</td></tr>`;
+                    document.getElementById('paginationContainer').innerHTML = '';
+                    return;
+                }
+
+                tbody.innerHTML = tickets.map(t => {
+                    const breached = t.slaResolutionBreached || t.slaFirstResponseBreached;
+                    return `
+                        <tr>
+                            <td class="fw-bold"><a href="/agent/tickets/${t.id}" class="text-primary">${escapeHtml(t.ticketNumber)}</a></td>
+                            <td>
+                                <div class="fw-semibold text-dark small">${escapeHtml(t.customerName || 'Customer')}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">${escapeHtml(t.customerEmail || '')}</div>
+                            </td>
+                            <td>
+                                <a href="/agent/tickets/${t.id}" class="text-dark fw-semibold text-decoration-none">
+                                    ${escapeHtml(t.subject)}
+                                </a>
+                            </td>
+                            <td>${getPriorityBadge(t.priority)}</td>
+                            <td>${getStatusBadge(t.status)}</td>
+                            <td class="small text-muted">${t.firstResponseAt ? formatDate(t.firstResponseAt) : '<span class="text-danger fw-semibold">Pending</span>'}</td>
+                            <td>${formatSlaRemaining(null, breached) !== '—' && breached ? '<span class="badge bg-danger">Breached</span>' : formatDate(t.resolutionDeadline)}</td>
+                            <td class="text-end">
+                                <a href="/agent/tickets/${t.id}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-reply-fill me-1"></i> Open
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                renderPagination(res, 'paginationContainer', 'loadTickets');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
+

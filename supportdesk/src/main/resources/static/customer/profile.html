@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Profile - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Customer</div>
+                <div class="small text-muted current-user-role">CUSTOMER</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/customer/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/tickets" class="nav-link"><i class="bi bi-ticket-perforated me-2"></i> My Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/tickets/new" class="nav-link"><i class="bi bi-plus-circle me-2"></i> Submit Ticket</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/profile" class="nav-link active"><i class="bi bi-person me-2"></i> Profile</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0">My Account Profile</h4>
+                    <p class="text-muted small mb-0">Manage your contact information and preferences</p>
+                </div>
+            </header>
+
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-person-badge text-primary me-2"></i>Profile Information</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="profileForm">
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small">First Name</label>
+                                        <input type="text" id="profFirstName" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold small">Last Name</label>
+                                        <input type="text" id="profLastName" class="form-control" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small">Email Address</label>
+                                    <input type="email" id="profEmail" class="form-control" readonly disabled>
+                                    <div class="form-text">Email address is managed by your organization identity.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small">Phone Number</label>
+                                    <input type="tel" id="profPhone" class="form-control" placeholder="+1 (555) 0123">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small">Organization</label>
+                                    <input type="text" id="profOrg" class="form-control" readonly disabled>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btnSaveProfile">
+                                        <i class="bi bi-check2 me-1"></i> Save Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-shield-lock text-warning me-2"></i>Security & Identity</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <span class="text-muted small d-block">Role Permissions</span>
+                                <span class="badge bg-primary">CUSTOMER</span>
+                            </div>
+                            <div class="mb-3">
+                                <span class="text-muted small d-block">Authentication Scheme</span>
+                                <span class="small fw-semibold">BCrypt Password Hashed</span>
+                            </div>
+                            <div>
+                                <span class="text-muted small d-block">Session Status</span>
+                                <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>Secure Server-Side</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await loadCurrentUser();
+            if (user) {
+                document.getElementById('profFirstName').value = user.firstName || '';
+                document.getElementById('profLastName').value = user.lastName || '';
+                document.getElementById('profEmail').value = user.email || '';
+                document.getElementById('profPhone').value = user.phone || '';
+                document.getElementById('profOrg').value = user.organizationName || 'Default Organization';
+            }
+
+            document.getElementById('profileForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const firstName = document.getElementById('profFirstName').value.trim();
+                const lastName = document.getElementById('profLastName').value.trim();
+                const phone = document.getElementById('profPhone').value.trim();
+
+                try {
+                    await API.put('/api/auth/me', { firstName, lastName, phone });
+                    showToast('Profile updated successfully', 'success');
+                    await loadCurrentUser();
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
