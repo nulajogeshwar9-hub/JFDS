@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/login.html" },
+    { "source": "/login", "destination": "/api/login", "methods": ["POST"] },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/register", "destination": "/register.html" },
+    { "source": "/customer/dashboard", "destination": "/customer/dashboard.html" },
+    { "source": "/customer/tickets/new", "destination": "/customer/ticket-create.html" },
+    { "source": "/customer/tickets/:id", "destination": "/customer/ticket-detail.html" },
+    { "source": "/customer/tickets", "destination": "/customer/tickets.html" },
+    { "source": "/customer/profile", "destination": "/customer/profile.html" },
+    { "source": "/agent/dashboard", "destination": "/agent/dashboard.html" },
+    { "source": "/agent/tickets/:id", "destination": "/agent/ticket-detail.html" },
+    { "source": "/agent/tickets", "destination": "/agent/tickets.html" },
+    { "source": "/admin/dashboard", "destination": "/admin/dashboard.html" },
+    { "source": "/admin/tickets/:id", "destination": "/admin/ticket-detail.html" },
+    { "source": "/admin/tickets", "destination": "/admin/tickets.html" },
+    { "source": "/admin/users", "destination": "/admin/users.html" },
+    { "source": "/admin/teams", "destination": "/admin/teams.html" },
+    { "source": "/admin/categories", "destination": "/admin/categories.html" },
+    { "source": "/admin/sla", "destination": "/admin/sla.html" },
+    { "source": "/admin/assignment-rules", "destination": "/admin/assignment-rules.html" },
+    { "source": "/admin/reports", "destination": "/admin/reports.html" },
+    { "source": "/admin/settings", "destination": "/admin/settings.html" },
+    { "source": "/logout", "destination": "/login.html?logout=true" },
+    { "source": "/api/:path*", "destination": "/api/[...path]" }
+  ]
+}

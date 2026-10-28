@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Details - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .chat-bubble {
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            max-width: 85%;
+        }
+        .chat-customer {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            margin-left: auto;
+        }
+        .chat-agent {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Customer</div>
+                <div class="small text-muted current-user-role">CUSTOMER</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/customer/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/tickets" class="nav-link active"><i class="bi bi-ticket-perforated me-2"></i> My Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/tickets/new" class="nav-link"><i class="bi bi-plus-circle me-2"></i> Submit Ticket</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customer/profile" class="nav-link"><i class="bi bi-person me-2"></i> Profile</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <a href="/customer/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+                        <h4 class="fw-bold mb-0" id="ticketNumberHeader">Loading...</h4>
+                        <span id="ticketStatusBadge"></span>
+                    </div>
+                    <p class="text-muted small mb-0" id="ticketSubjectHeader"></p>
+                </div>
+                <div id="actionButtonsArea"></div>
+            </header>
+
+            <div class="row g-4">
+                <!-- Left: Ticket Conversation & Reply Form -->
+                <div class="col-lg-8">
+                    <!-- Original Description Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small" id="ticketCustomerName">Customer</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;" id="ticketCreatedAt">Created: —</div>
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-dark border">Original Request</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 text-secondary" id="ticketDescription" style="white-space: pre-wrap;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Conversation Thread -->
+                    <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-chat-left-text me-2"></i>Conversation Updates</h6>
+                    <div id="conversationThread" class="mb-4">
+                        <div class="text-center py-3 text-muted small">Loading messages...</div>
+                    </div>
+
+                    <!-- Reply Box -->
+                    <div class="card border-0 shadow-sm" id="replyBoxCard">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-reply-fill text-primary me-2"></i>Send Reply</h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="replyForm">
+                                <div class="mb-3">
+                                    <textarea id="replyMessage" class="form-control" rows="4" required
+                                              placeholder="Type your reply or additional information here..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold" id="btnSendReply">
+                                        <i class="bi bi-send me-1"></i> Post Reply
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Reopened Alert If Resolved -->
+                    <div class="alert alert-info d-none mt-3" id="resolvedInfoBox">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                                <span>This ticket is marked as <strong>RESOLVED</strong>. If your issue persists, you may reopen it.</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" id="btnReopenTicket">
+                                <i class="bi bi-arrow-repeat me-1"></i> Reopen Ticket
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Ticket Meta Information -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 border-bottom">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-info-circle text-primary me-2"></i>Ticket Information</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Priority:</span>
+                                    <span id="ticketPriorityBadge"></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Category:</span>
+                                    <span class="fw-semibold small" id="ticketCategory">General</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Domain:</span>
+                                    <span class="badge bg-light text-dark border" id="ticketDomain">—</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Assigned Team:</span>
+                                    <span class="small fw-semibold" id="ticketTeam">Unassigned Queue</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Assigned Agent:</span>
+                                    <span class="small fw-semibold" id="ticketAgent">Pending Assignment</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">SLA Target:</span>
+                                    <span id="ticketSlaRemaining">—</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Resolution Deadline:</span>
+                                    <span class="small text-muted" id="ticketResolutionDeadline">—</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Customer Support Guarantee -->
+                    <div class="card border-0 shadow-sm bg-light">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-patch-check-fill text-primary fs-4 me-2"></i>
+                                <span class="fw-bold small">Enterprise Support Coverage</span>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                All tickets are governed by verified response deadlines under automated SLA supervision. You will receive an email update whenever our agents post a reply.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        const ticketId = window.location.pathname.split('/').pop();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            loadTicketDetail();
+
+            document.getElementById('replyForm').addEventListener('submit', postReply);
+            document.getElementById('btnReopenTicket')?.addEventListener('click', reopenTicket);
+        });
+
+        async function loadTicketDetail() {
+            try {
+                const ticket = await API.get(`/api/tickets/${ticketId}`);
+                if (!ticket) return;
+
+                document.getElementById('ticketNumberHeader').textContent = ticket.ticketNumber;
+                document.getElementById('ticketSubjectHeader').textContent = ticket.subject;
+                document.getElementById('ticketStatusBadge').innerHTML = getStatusBadge(ticket.status);
+                document.getElementById('ticketPriorityBadge').innerHTML = getPriorityBadge(ticket.priority);
+
+                document.getElementById('ticketCustomerName').textContent = ticket.customerName;
+                document.getElementById('ticketCreatedAt').textContent = 'Submitted: ' + formatDate(ticket.createdAt);
+                document.getElementById('ticketDescription').textContent = ticket.description;
+
+                document.getElementById('ticketCategory').textContent = ticket.categoryName || 'General';
+                document.getElementById('ticketDomain').textContent = ticket.domain || 'Standard';
+                document.getElementById('ticketTeam').textContent = ticket.assignedTeamName || 'General Support Queue';
+                document.getElementById('ticketAgent').textContent = ticket.assignedAgentName || 'Assigned Agent Pending';
+
+                const breached = ticket.slaResolutionBreached || ticket.slaFirstResponseBreached;
+                document.getElementById('ticketSlaRemaining').innerHTML = formatSlaRemaining(ticket.slaRemainingMinutes, breached);
+                document.getElementById('ticketResolutionDeadline').textContent = formatDate(ticket.resolutionDeadline);
+
+                // Handle resolved / closed state
+                if (ticket.status === 'RESOLVED') {
+                    document.getElementById('resolvedInfoBox').classList.remove('d-none');
+                } else if (ticket.status === 'CLOSED') {
+                    document.getElementById('replyBoxCard').classList.add('d-none');
+                }
+
+                // Render replies
+                renderReplies(ticket.replies || []);
+
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to load ticket details: ' + err.message, 'danger');
+            }
+        }
+
+        function renderReplies(replies) {
+            const container = document.getElementById('conversationThread');
+            if (replies.length === 0) {
+                container.innerHTML = `
+                    <div class="card border-0 shadow-sm p-4 text-center text-muted">
+                        <i class="bi bi-chat-square-dots fs-2 text-secondary mb-2"></i>
+                        No replies yet. An agent will investigate and respond shortly.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = replies.map(r => {
+                const isCustomer = r.userRole === 'CUSTOMER';
+                return `
+                    <div class="chat-bubble ${isCustomer ? 'chat-customer' : 'chat-agent'} shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold small ${isCustomer ? 'text-primary' : 'text-dark'}">
+                                <i class="bi ${isCustomer ? 'bi-person-circle' : 'bi-headset'} me-1"></i>
+                                ${escapeHtml(r.userName)}
+                                <span class="badge ${isCustomer ? 'bg-primary' : 'bg-success'} ms-1" style="font-size:0.65rem;">
+                                    ${r.userRole}
+                                </span>
+                            </span>
+                            <span class="text-muted" style="font-size: 0.75rem;">${formatDate(r.createdAt)}</span>
+                        </div>
+                        <div class="text-secondary small" style="white-space: pre-wrap;">${escapeHtml(r.message)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function postReply(e) {
+            e.preventDefault();
+            const message = document.getElementById('replyMessage').value.trim();
+            if (!message) return;
+
+            const btn = document.getElementById('btnSendReply');
+            btn.disabled = true;
+
+            try {
+                await API.post(`/api/tickets/${ticketId}/replies`, { message, internalNote: false });
+                document.getElementById('replyMessage').value = '';
+                showToast('Reply posted successfully', 'success');
+                loadTicketDetail();
+            } catch (err) {
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function reopenTicket() {
+            if (!confirm('Reopen this ticket and request further investigation?')) return;
+            try {
+                await API.put(`/api/tickets/${ticketId}/status`, { status: 'OPEN', comment: 'Ticket reopened by customer' });
+                showToast('Ticket reopened', 'success');
+                window.location.reload();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
+

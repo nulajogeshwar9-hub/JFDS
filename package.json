@@ -1,0 +1,17 @@
+{
+  "name": "supportdesk-platform",
+  "version": "1.0.0",
+  "description": "SupportDesk - Multi-Domain Customer Support & IT Service Management Platform",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "keywords": [
+    "supportdesk",
+    "itsm",
+    "java",
+    "spring-boot",
+    "customer-support"
+  ],
+  "author": "Nula Jogeshwar",
+  "license": "MIT"
+}

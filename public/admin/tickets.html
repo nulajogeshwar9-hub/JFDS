@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Tickets Management - SupportDesk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-headset text-primary me-2 fs-4"></i>
+                <span class="brand-text">SupportDesk</span>
+            </div>
+            <div class="sidebar-user px-3 py-2 border-bottom border-secondary mb-3">
+                <div class="fw-semibold text-white current-user-name">Administrator</div>
+                <div class="small text-info current-user-role">ORGANIZATION ADMIN</div>
+                <div class="small text-muted current-user-org">TechFlow Solutions</div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="/admin/dashboard" class="nav-link"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/tickets" class="nav-link active"><i class="bi bi-ticket-perforated me-2"></i> All Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/users" class="nav-link"><i class="bi bi-people me-2"></i> User Directory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/teams" class="nav-link"><i class="bi bi-diagram-3 me-2"></i> Support Teams</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/categories" class="nav-link"><i class="bi bi-tags me-2"></i> Categories</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/sla" class="nav-link"><i class="bi bi-shield-check me-2"></i> SLA Policies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/rules" class="nav-link"><i class="bi bi-bezier2 me-2"></i> Routing Rules</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/reports" class="nav-link"><i class="bi bi-bar-chart-line me-2"></i> Reports & Analytics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/admin/settings" class="nav-link"><i class="bi bi-gear me-2"></i> Domain Settings</a>
+                    </li>
+                    <li class="nav-item mt-4">
+                        <a href="/logout" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0">Master Ticket Registry</h4>
+                    <p class="text-muted small mb-0">View, assign, filter, and export all organization support cases</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success" id="btnExportCsv">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Filtered CSV
+                    </button>
+                </div>
+            </header>
+
+            <!-- Combined Filter Bar -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form id="filterForm" class="row g-2 align-items-center">
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                                <input type="text" id="filterQuery" class="form-control" placeholder="Search ticket #, subject, customer...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterStatus" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="OPEN">Open</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="WAITING_FOR_CUSTOMER">Waiting Customer</option>
+                                <option value="RESOLVED">Resolved</option>
+                                <option value="CLOSED">Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterPriority" class="form-select">
+                                <option value="">All Priorities</option>
+                                <option value="URGENT">Urgent</option>
+                                <option value="HIGH">High</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="LOW">Low</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterDomain" class="form-select">
+                                <option value="">All Domains</option>
+                                <option value="IT_SOFTWARE">IT Software</option>
+                                <option value="ECOMMERCE">E-Commerce</option>
+                                <option value="EDUCATION">Education</option>
+                                <option value="BANKING">Banking</option>
+                                <option value="HEALTHCARE">Healthcare</option>
+                                <option value="GENERAL">General</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check pt-2">
+                                <input class="form-check-input" type="checkbox" id="filterOverdue">
+                                <label class="form-check-label small fw-semibold text-danger" for="filterOverdue">
+                                    Overdue Only
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-flex gap-1">
+                            <button type="submit" class="btn btn-primary w-100" title="Apply Filter"><i class="bi bi-funnel"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" id="resetBtn" title="Reset"><i class="bi bi-arrow-clockwise"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ticket #</th>
+                                    <th>Customer</th>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Assigned Team / Agent</th>
+                                    <th>SLA Target</th>
+                                    <th>Created</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ticketsTableBody">
+                                <tr><td colspan="10" class="text-center py-4 text-muted">Loading tickets...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white py-3 border-top d-flex justify-content-between align-items-center" id="paginationContainer"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Quick Assignment Modal -->
+    <div class="modal fade" id="assignModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Assign Ticket <span id="assignTicketNumber"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="assignTicketId">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Support Team</label>
+                        <select id="modalTeamSelect" class="form-select">
+                            <option value="">-- Select Team --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Support Agent</label>
+                        <select id="modalAgentSelect" class="form-select">
+                            <option value="">-- Select Agent --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveAssignment">Confirm Assignment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/app.js"></script>
+    <script>
+        let currentPage = 0;
+        let assignModalInstance;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+            assignModalInstance = new bootstrap.Modal(document.getElementById('assignModal'));
+
+            loadTickets();
+            loadTeamsAndAgents();
+
+            document.getElementById('filterForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                currentPage = 0;
+                loadTickets();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('filterQuery').value = '';
+                document.getElementById('filterStatus').value = '';
+                document.getElementById('filterPriority').value = '';
+                document.getElementById('filterDomain').value = '';
+                document.getElementById('filterOverdue').checked = false;
+                currentPage = 0;
+                loadTickets();
+            });
+
+            document.getElementById('btnExportCsv').addEventListener('click', () => {
+                const status = document.getElementById('filterStatus').value;
+                const priority = document.getElementById('filterPriority').value;
+                const domain = document.getElementById('filterDomain').value;
+                let url = '/api/admin/reports/export-csv?';
+                if (status) url += `status=${status}&`;
+                if (priority) url += `priority=${priority}&`;
+                if (domain) url += `domain=${domain}&`;
+                window.location.href = url;
+            });
+
+            document.getElementById('btnSaveAssignment').addEventListener('click', saveAssignment);
+        });
+
+        async function loadTeamsAndAgents() {
+            try {
+                const teams = await API.get('/api/admin/teams');
+                const agents = await API.get('/api/admin/users?role=AGENT');
+
+                const teamSelect = document.getElementById('modalTeamSelect');
+                if (teams) {
+                    teams.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name;
+                        teamSelect.appendChild(opt);
+                    });
+                }
+
+                const agentSelect = document.getElementById('modalAgentSelect');
+                if (agents) {
+                    agents.forEach(a => {
+                        const opt = document.createElement('option');
+                        opt.value = a.id;
+                        opt.textContent = `${a.fullName} (${a.email})`;
+                        agentSelect.appendChild(opt);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        async function loadTickets(page = currentPage) {
+            currentPage = page;
+            const q = document.getElementById('filterQuery').value.trim();
+            const status = document.getElementById('filterStatus').value;
+            const priority = document.getElementById('filterPriority').value;
+            const domain = document.getElementById('filterDomain').value;
+            const overdue = document.getElementById('filterOverdue').checked;
+
+            let url = `/api/tickets?page=${page}&size=10&sortDirection=DESC`;
+            if (q) url += `&query=${encodeURIComponent(q)}`;
+            if (status) url += `&status=${status}`;
+            if (priority) url += `&priority=${priority}`;
+            if (domain) url += `&domain=${domain}`;
+            if (overdue) url += `&overdue=true`;
+
+            try {
+                const res = await API.get(url);
+                const tbody = document.getElementById('ticketsTableBody');
+                const tickets = res ? res.content : [];
+
+                if (!tickets || tickets.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-muted">No tickets match your filter criteria.</td></tr>`;
+                    document.getElementById('paginationContainer').innerHTML = '';
+                    return;
+                }
+
+                tbody.innerHTML = tickets.map(t => {
+                    const breached = t.slaResolutionBreached || t.slaFirstResponseBreached;
+                    return `
+                        <tr>
+                            <td class="fw-bold"><a href="/admin/tickets/${t.id}" class="text-primary">${escapeHtml(t.ticketNumber)}</a></td>
+                            <td>
+                                <div class="fw-semibold text-dark small">${escapeHtml(t.customerName || 'Customer')}</div>
+                                <div class="text-muted" style="font-size:0.75rem;">${escapeHtml(t.customerEmail || '')}</div>
+                            </td>
+                            <td>
+                                <a href="/admin/tickets/${t.id}" class="text-dark fw-semibold text-decoration-none">
+                                    ${escapeHtml(t.subject)}
+                                </a>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">${escapeHtml(t.categoryName || 'General')}</span></td>
+                            <td>${getPriorityBadge(t.priority)}</td>
+                            <td>${getStatusBadge(t.status)}</td>
+                            <td>
+                                <div class="small fw-semibold">${escapeHtml(t.assignedTeamName || 'No Team')}</div>
+                                <div class="small text-muted">${escapeHtml(t.assignedAgentName || 'Unassigned')}</div>
+                            </td>
+                            <td>${breached ? '<span class="badge bg-danger">Breached</span>' : formatDate(t.resolutionDeadline)}</td>
+                            <td class="small text-muted">${formatDate(t.createdAt)}</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-secondary" onclick="openAssignModal(${t.id}, '${t.ticketNumber}', ${t.assignedTeamId}, ${t.assignedAgentId})" title="Assign">
+                                        <i class="bi bi-person-plus"></i>
+                                    </button>
+                                    <a href="/admin/tickets/${t.id}" class="btn btn-outline-primary" title="Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                renderPagination(res, 'paginationContainer', 'loadTickets');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function openAssignModal(id, number, teamId, agentId) {
+            document.getElementById('assignTicketId').value = id;
+            document.getElementById('assignTicketNumber').textContent = number;
+            document.getElementById('modalTeamSelect').value = teamId || '';
+            document.getElementById('modalAgentSelect').value = agentId || '';
+            assignModalInstance.show();
+        }
+
+        async function saveAssignment() {
+            const ticketId = document.getElementById('assignTicketId').value;
+            const teamId = document.getElementById('modalTeamSelect').value;
+            const agentId = document.getElementById('modalAgentSelect').value;
+
+            try {
+                await API.put(`/api/admin/tickets/${ticketId}/assign`, {
+                    teamId: teamId ? parseInt(teamId) : null,
+                    agentId: agentId ? parseInt(agentId) : null
+                });
+
+                showToast('Ticket assigned successfully', 'success');
+                assignModalInstance.hide();
+                loadTickets();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
+
